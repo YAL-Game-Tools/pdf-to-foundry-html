@@ -26,7 +26,11 @@ main#app {
 		> .header {
 			display: flex;
 			flex-direction: row;
+			align-items: center;
 			height: 1.5em;
+			input[type="number"] {
+				width: 3.5em;
+			}
 		}
 	}
 	#pdf-canvas {
@@ -41,11 +45,12 @@ main#app {
 	}
 	#config {
 		width: 120px;
-		input, select {
-			height: 1.5em;
+		gap: 0;
+		label {
+			margin-top: 0.3em;
 		}
-		> * {
-			
+		input:not([type="checkbox"]), select {
+			height: 1.5em;
 		}
 	}
 	#preview {

@@ -4,6 +4,7 @@
 </head><body>
 	<script src="lib/pdf.mjs" type="module"></script>
 
+	<script src="script.js"></script>
 	<script src="wrapper.mjs" type="module"></script>
 	
 	<form id="file-picker-form">
@@ -11,19 +12,27 @@
 	</form>
 	<main id="app"><section id="config">
 		<input type="button" value="Open PDF" />
-		<label for="edge-left">Left:</label>
-		<input  id="edge-left" type="number" value="10"/>
-		<label for="edge-right">Right:</label>
-		<input  id="edge-right" type="number" value="90"/>
-		<label for="edge-x">Offset:</label>
-		<input  id="edge-x" type="number" value="0"/>
 		<label for="edge-top">Top:</label>
 		<input  id="edge-top" type="number" value="10"/>
 		<label for="edge-bottom">Bottom:</label>
-		<input  id="edge-bottom" type="number" value="90"/>
+		<input  id="edge-bottom" type="number" value="7"/>
+		<label>
+			<input type="checkbox" id="edge-auto" checked/>
+			Auto-detect
+		</label>
+		<label for="edge-left">Left:</label>
+		<input  id="edge-left" type="number" value="10"/>
+		<label for="edge-right">Right:</label>
+		<input  id="edge-right" type="number" value="10"/>
+		<label for="edge-x">Offset:</label>
+		<input  id="edge-x" type="number" value="0"/>
 	</section><section id="pdf">
-		<div class="header">
-			<input type="number" id="page-number" value="1" />
+		<div class="header" style="gap:0.3em">
+			Page
+			<input type="button" id="page-prev" value="↑" />
+			<input type="button" id="page-next" value="↓" />
+			<input type="number" id="page-number" value="1" style="width: 2.5em"/>
+			of <span id="page-count">1</span>
 		</div>
 		<div id="pdf-canvas">
 			<canvas id="the-canvas"></canvas>
