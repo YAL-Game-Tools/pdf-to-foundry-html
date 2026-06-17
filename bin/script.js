@@ -256,6 +256,32 @@ Reader.run = $hx_exports["hxReadPage"] = function(doc,page,textContent,canvas,ct
 			}
 		}
 	}
+	var _g = [];
+	var _g1 = 0;
+	var _g2 = preview.children;
+	while(_g1 < _g2.length) {
+		var e = _g2[_g1];
+		++_g1;
+		_g.push(e);
+	}
+	var previewElements = _g;
+	var _g_current = 0;
+	var _g_array = previewElements;
+	while(_g_current < _g_array.length) {
+		var _g_value = _g_array[_g_current];
+		var _g_key = _g_current++;
+		var i = _g_key;
+		var e = _g_value;
+		if(i > 0) {
+			switch(e.tagName) {
+			case "H2":case "HR":
+				e.before("\n\n");
+				break;
+			default:
+				e.before("\n");
+			}
+		}
+	}
 	ctx.restore();
 };
 var Reflect = function() { };

@@ -3,7 +3,8 @@
 var url = 'test/PZO14006-BX Dawn of the Frogs.pdf';
 
 // Loaded via <script> tag, create shortcut to access PDF.js exports.
-var { pdfjsLib } = globalThis;
+const { pdfjsLib } = globalThis;
+const { OPS } = pdfjsLib;
 
 // The workerSrc property shall be specified.
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.mjs';
@@ -11,18 +12,70 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'lib/pdf.worker.mjs';
 let pdf = null, page = null;
 
 const preview = document.getElementById("preview");
-/**
- * 
- * @param {*} pdf
- * @param {*} page
- * @param {*} txt
- * @param {HTMLCanvasElement} canvas
- * @param {CanvasRenderingContext2D} ctx
- */
 function readPage(pdf, page, txt, canvas, ctx, scale, first) {
 	window.hxReadPage(pdf, page, txt, canvas, ctx, scale, first, preview);
 }
 
+let readingPageImages = false;
+const pageImageDiv = document.getElementById("page-images");
+async function readPageImages() {
+	readingPageImages = true;
+	let ops = await page.getOperatorList();
+	readingPageImages = false;
+	//
+	let { fnArray, argsArray } = ops;
+	let n = fnArray.length;
+	let found = new Set();
+	function getObjAsync(objects, objectID) {
+		return new Promise(resolve => objects.get(objectID, resolve));
+	}
+	function addImage(pdfImage) {
+		if (!pdfImage || !pdfImage.width || !pdfImage.height || !pdfImage.data) return;
+		let canvas = document.createElement("canvas");
+		canvas.width = pdfImage.width;
+		canvas.height = pdfImage.height;
+		console.log(pdfImage.data);
+		//
+		let ctx = canvas.getContext("2d");
+		let imageData = ctx.createImageData(pdfImage.width, pdfImage.height);
+		imageData.data.set(pdfImage.data);
+		ctx.putImageData(imageData, 0, 0);
+		//
+		var slot = document.createElement("div");
+		slot.classList.add("slot");
+		slot.append(canvas);
+		pageImageDiv.append(slot);
+	}
+	//
+	pageImageDiv.innerHTML = "";
+	for (let i = 0; i < n; i++) {
+		let fn = fnArray[i];
+		if (fn == OPS.paintImageXObject || fn == OPS.paintImageXObjectRepeat) {
+			let args = argsArray[i];
+			if (!Array.isArray(args)) continue;
+			//
+			let objectID = args[0];
+			if (!objectID || found.has(objectID)) continue;
+			//
+			found.add(objectID);
+			let objects = objectID.startsWith("g_") ? page.commonObjs : page.objs;
+			addImage(await getObjAsync(objects, objectID));
+		} else if (fn == OPS.paintInlineImageXObject) {
+			let args = argsArray[i];
+			if (!Array.isArray(args)) continue;
+			addImage(args[0]);
+		}
+	}
+}
+var showImagesButton = document.getElementById("show-images");
+showImagesButton.addEventListener("click", e => {
+	if (readingPageImages) return;
+	readPageImages().catch(() => {
+		readingPageImages = false;
+	});
+});
+
+let pageScaleField = document.getElementById("page-scale");
 let pageNumber = 1;
 let loadingPage = false;
 let loadAnother = false;
@@ -58,7 +111,11 @@ async function loadPage() {
 	window.pdfText = txt;
 	console.log('Page loaded');
 	
-	var scale = 1.5;
+	let scale = parseFloat(pageScaleField.value);
+	if (isNaN(scale)) scale = 100;
+	if (scale < 10) scale = 10;
+	if (scale > 1000) scale = 1000;
+	scale /= 100;
 	lastScale = scale;
 	var viewport = page.getViewport({scale: scale});
 	
@@ -73,6 +130,7 @@ async function loadPage() {
 		canvasContext: context,
 		viewport: viewport
 	};
+	pageImageDiv.innerHTML = "";
 	var renderTask = page.render(renderContext);
 	renderTask.promise.then(() => {
 		copyCanvas.width = canvas.width;
@@ -87,7 +145,7 @@ let pageField = document.getElementById("page-number");
 function getPageNumber() {
 	let num = parseInt(pageField.value);
 	if (isNaN(num)) num = 1;
-	//if (num < 1) num = 1;
+	if (num < 1) num = 1;
 	return num;
 }
 function flipPage(number = null, set = false) {
@@ -97,6 +155,9 @@ function flipPage(number = null, set = false) {
 	pageNumber = number;
 	loadPage();
 }
+pageScaleField.addEventListener("change", e => {
+	loadPage();
+});
 pageField.addEventListener("input", _ => {
 	flipPage();
 });
@@ -115,47 +176,55 @@ window.pdfHelper = {
 		context.drawImage(copyCanvas, 0, 0);
 		readPage(pdf, page, lastTextContent, canvas, context, lastScale, false);
 	}
-}
+};
 
-// Asynchronous download of PDF
-var loadingTask = pdfjsLib.getDocument({ url });
-loadingTask.promise.then(function(_pdf) {
-	pdf = _pdf;
-	console.log('PDF loaded');
-	document.getElementById("page-number")
-	// Fetch the first page
-	loadPage();
-	/*
-	var pageNumber = 5;
-	pdf.getPage(pageNumber).then(async function(page) {
-		let txt = await page.getTextContent();
-		window.pdf = pdf;
-		window.pdfPage = page;
-		window.pdfText = txt;
-		console.log('Page loaded');
-		
-		var scale = 1.5;
-		var viewport = page.getViewport({scale: scale});
-		
-		// Prepare canvas using PDF page dimensions
-		var canvas = document.getElementById('the-canvas');
-		var context = canvas.getContext('2d');
-		canvas.height = viewport.height;
-		canvas.width = viewport.width;
-		
-		// Render PDF page into canvas context
-		var renderContext = {
-			canvasContext: context,
-			viewport: viewport
-		};
-		var renderTask = page.render(renderContext);
-		renderTask.promise.then(function () {
-			console.log('Page rendered');
-			readPage(pdf, page, txt, canvas, context);
-		});
+(function initCopyHTML() {
+	let button = document.getElementById("copy-html");
+	let label = button.value;
+	let revertTimeout = null;
+	let blink = function() {
+		if(revertTimeout != null) {
+			window.clearTimeout(revertTimeout);
+		}
+		button.value = "Copied!";
+		revertTimeout = window.setTimeout(function() {
+			return button.value = label;
+		},1300);
+	};
+	button.addEventListener("click", e => {
+		navigator.clipboard.writeText(preview.innerHTML);
+		blink();
 	});
-	*/
-}, function (reason) {
-	// PDF loading error
-	console.error(reason);
+})();
+
+
+function loadPDF(params) {
+	let withImages = document.getElementById("extract-images").checked;
+	if (withImages) params.isOffscreenCanvasSupported = false;
+	pdfjsLib.getDocument(params).promise.then(async(_pdf) => {
+		showImagesButton.disabled = !withImages;
+		pdf = _pdf;
+		console.log('PDF loaded');
+		document.getElementById("page-count").innerText = pdf.numPages;
+		// Fetch the first page
+		loadPage();
+	}, function (reason) {
+		// PDF loading error
+		console.error(reason);
+	});
+}
+if (location.hostname == "localhost") {
+	loadPDF({
+		url: "test/PZO14006-BX Dawn of the Frogs.pdf"
+	});
+}
+const filePicker = document.getElementById("file-picker");
+filePicker.addEventListener("change", async (e) => {
+	const file = filePicker.files[0];
+	if (!file) return;
+	const bytes = await file.bytes();
+	loadPDF({ data: bytes });
+});
+document.getElementById("pick-pdf").addEventListener("click", e => {
+	filePicker.click();
 });

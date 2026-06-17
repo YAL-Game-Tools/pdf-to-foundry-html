@@ -14,8 +14,8 @@ main#app {
 	> section {
 		display: flex;
 		flex-direction: column;
-		gap: 0.3em;
 		&:not(#config) {
+			gap: 0.3em;
 			flex-grow: 1;
 			width: 0;
 			> :last-child {
@@ -28,48 +28,73 @@ main#app {
 			flex-direction: row;
 			align-items: center;
 			height: 1.5em;
+			gap: 0.3em;
 			input[type="number"] {
 				width: 3.5em;
 			}
 		}
 	}
-	#pdf-canvas {
+}
+#pdf-canvas {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #899FC6;
+	> canvas {
+		max-width: 100%;
+		max-height: 100%;
+	}
+}
+#preview-and-images {
+	overflow-y: auto;
+}
+#page-images {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 0.3em;
+	.slot {
 		display: flex;
+		width: 150px;
+		height: 150px;
 		align-items: center;
 		justify-content: center;
-		background-color: #899FC6;
-		> canvas {
+		img, canvas {
 			max-width: 100%;
 			max-height: 100%;
 		}
 	}
-	#config {
-		width: 120px;
-		gap: 0;
-		label {
-			margin-top: 0.3em;
-		}
-		input:not([type="checkbox"]), select {
-			height: 1.5em;
-		}
+}
+#preview hr, #page-images:not(:empty) {
+	border: 0;
+	border-bottom: 1px dashed currentColor;
+}
+#page-images:not(:empty) {
+	margin-bottom: 1em;
+}
+#preview {
+	> *:first-child {
+		margin-top: 0;
 	}
-	#preview {
-		overflow-y: auto;
-		> *:first-child {
-			margin-top: 0;
-		}
-		> *:last-child {
-			margin-bottom: 0;
-		}
-		hr {
-			border: 0;
-			border-bottom: 1px dashed currentColor;
-			margin: 0;
-		}
-		h2 {
-			margin-bottom: 0.3em;
-			border-bottom: 1px solid #ccc;
-		}
+	> *:last-child {
+		margin-bottom: 0;
+	}
+	hr {
+		margin: 0;
+	}
+	h2 {
+		margin-bottom: 0.3em;
+		border-bottom: 1px solid #ccc;
+	}
+}
+section#config {
+	width: 120px;
+	gap: 0;
+	label {
+		margin-top: 0.3em;
+	}
+	input:not([type="checkbox"]), select {
+		height: 1.5em;
 	}
 }
 #file-picker-form {

@@ -228,6 +228,17 @@ class Reader {
 			}
 		}
 		
+		// add line breaks for readability:
+		var previewElements = [for (e in preview.children) e];
+		for (i => e in previewElements) if (i > 0) {
+			switch (e.tagName) {
+				case "H2", "HR":
+					e.before("\n\n");
+				default:
+					e.before("\n");
+			}
+		}
+		
 		//
 		ctx.restore();
 	}
