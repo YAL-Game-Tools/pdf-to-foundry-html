@@ -167,6 +167,18 @@ document.getElementById("page-prev").addEventListener("click", _ => {
 document.getElementById("page-next").addEventListener("click", _ => {
 	flipPage(getPageNumber() + 1, true);
 });
+document.getElementById("pdf-canvas").addEventListener("keydown", e => {
+	if (e.ctrlKey) return;
+	switch (e.key) {
+		case "ArrowUp": case "ArrowLeft": case "PageUp":
+			flipPage(getPageNumber() - 1, true);
+			break;
+		case "ArrowDown": case "ArrowRight": case "PageDown":
+			flipPage(getPageNumber() + 1, true);
+			break;
+	}
+	//console.log(e);
+});
 
 window.pdfHelper = {
 	update: () => {
@@ -182,14 +194,14 @@ window.pdfHelper = {
 	let button = document.getElementById("copy-html");
 	let label = button.value;
 	let revertTimeout = null;
-	let blink = function() {
+	let blink = () => {
 		if(revertTimeout != null) {
 			window.clearTimeout(revertTimeout);
 		}
 		button.value = "Copied!";
-		revertTimeout = window.setTimeout(function() {
+		revertTimeout = window.setTimeout(() => {
 			return button.value = label;
-		},1300);
+		}, 1300);
 	};
 	button.addEventListener("click", e => {
 		navigator.clipboard.writeText(preview.innerHTML);
@@ -207,6 +219,8 @@ function loadPDF(params) {
 		console.log('PDF loaded');
 		document.getElementById("page-count").innerText = pdf.numPages;
 		// Fetch the first page
+		pageNumber = 1;
+		pageField.value = "" + pageNumber;
 		loadPage();
 	}, function (reason) {
 		// PDF loading error
