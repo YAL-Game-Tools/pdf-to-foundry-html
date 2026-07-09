@@ -103,3 +103,17 @@ section#config {
 	height: 0;
 	overflow: hidden;
 }
+
+@font-face {
+	font-family: "Pathfinder2eActions";
+	src: url(lib/pathfinder-2e-actions.woff2) format("woff2");
+}
+.action-glyph {
+	align-self: center;
+	display: inline;
+	font-family: "Pathfinder2eActions", sans-serif;
+	font-weight: normal;
+	letter-spacing: 0;
+	margin: 0;
+	padding: 0;
+}

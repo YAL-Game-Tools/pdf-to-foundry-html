@@ -1,3 +1,4 @@
+import tools.FoundryHelper;
 import js.html.Element;
 import js.lib.RegExp;
 import js.lib.Object;
@@ -53,6 +54,7 @@ class Reader {
 		canvas:CanvasElement, ctx:CanvasRenderingContext2D, scale:Float,
 		firstRender:Bool, preview:Element
 	) {
+		var forFoundry = getFieldFlag("foundry");
 		var pageWidth = page.width;
 		var pageHeight = page.height;
 		//
@@ -206,19 +208,27 @@ class Reader {
 				}
 				if (wantSep) out.append(" ");
 				//
+				var nodes;
+				if (forFoundry) {
+					nodes = FoundryHelper.convertForFoundry(text);
+				} else nodes = [document.createTextNode(text)];
+				inline function appendTo(out:Element) {
+					for (node in nodes) out.append(node);
+				}
+				//
 				if (isHeader) {
 					// ignore formatting in headers
-					out.append(text);
+					appendTo(out);
 				} else if (isBold) {
 					var b = document.createElement("b");
-					b.append(text);
+					appendTo(b);
 					out.append(b);
 				} else if (isItalic) {
 					var i = document.createElement("i");
-					i.append(text);
+					appendTo(i);
 					out.append(i);
 				} else {
-					out.append(text);
+					appendTo(out);
 				}
 				//
 				lastY = label.y;
