@@ -22,24 +22,50 @@ async function readPageImages() {
 	readingPageImages = true;
 	let ops = await page.getOperatorList();
 	readingPageImages = false;
-	//
+	
+	/*// Show operators & arguments:
+	let pairs = [];
+	let fnName = new Map();
+	for (let key of Object.keys(pdfjsLib.OPS)) {
+		fnName.set(pdfjsLib.OPS[key], key);
+	}
+	for (let i = 0; i < ops.fnArray.length; i++) {
+		let fn = ops.fnArray[i], args = ops.argsArray[i];
+		let name = fnName.get(fn) ?? "#" + fn;
+		let pair = { fn, name, args };
+		if (Array.isArray(args)) {
+			for (let k = 0; k < args.length; k++) {
+				pair["#" + k] = args[k];
+			}
+		}
+		pairs.push(pair);
+	}
+	console.log(pairs);
+	//*/
+	
 	let { fnArray, argsArray } = ops;
 	let n = fnArray.length;
 	let found = new Set();
 	function getObjAsync(objects, objectID) {
 		return new Promise(resolve => objects.get(objectID, resolve));
 	}
-	function addImage(pdfImage) {
-		if (!pdfImage || !pdfImage.width || !pdfImage.height || !pdfImage.data) return;
+	function addImage(pdfImage, id) {
+		if (!pdfImage || !pdfImage.width || !pdfImage.height) return;
+		if (!pdfImage.data && !pdfImage.bitmap) return;
 		let canvas = document.createElement("canvas");
 		canvas.width = pdfImage.width;
 		canvas.height = pdfImage.height;
-		console.log(pdfImage.data);
+		if (id) canvas.title = "" + id;
+		//console.log(pdfImage.data);
 		//
 		let ctx = canvas.getContext("2d");
-		let imageData = ctx.createImageData(pdfImage.width, pdfImage.height);
-		imageData.data.set(pdfImage.data);
-		ctx.putImageData(imageData, 0, 0);
+		if (pdfImage.data) {
+			let imageData = ctx.createImageData(pdfImage.width, pdfImage.height);
+			imageData.data.set(pdfImage.data);
+			ctx.putImageData(imageData, 0, 0);
+		} else if (pdfImage.bitmap) {
+			ctx.drawImage(pdfImage.bitmap, 0, 0);
+		}
 		//
 		var slot = document.createElement("div");
 		slot.classList.add("slot");
@@ -59,18 +85,19 @@ async function readPageImages() {
 			//
 			found.add(objectID);
 			let objects = objectID.startsWith("g_") ? page.commonObjs : page.objs;
-			addImage(await getObjAsync(objects, objectID));
+			addImage(await getObjAsync(objects, objectID), objectID);
 		} else if (fn == OPS.paintInlineImageXObject) {
 			let args = argsArray[i];
 			if (!Array.isArray(args)) continue;
-			addImage(args[0]);
+			addImage(args[0], null);
 		}
 	}
 }
 var showImagesButton = document.getElementById("show-images");
 showImagesButton.addEventListener("click", e => {
 	if (readingPageImages) return;
-	readPageImages().catch(() => {
+	readPageImages().catch(e => {
+		console.error("Error getting images!", e);
 		readingPageImages = false;
 	});
 });
@@ -158,8 +185,11 @@ function flipPage(number = null, set = false) {
 pageScaleField.addEventListener("change", e => {
 	loadPage();
 });
-pageField.addEventListener("input", _ => {
+pageField.addEventListener("change", _ => {
 	flipPage();
+});
+pageField.addEventListener("keydown", e => {
+	if (e.key == "Enter") flipPage();
 });
 document.getElementById("page-prev").addEventListener("click", _ => {
 	flipPage(getPageNumber() - 1, true);
