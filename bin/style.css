@@ -11,18 +11,25 @@ main#app {
 	width: 100%;
 	height: calc(100vh - 0.6em);
 	box-sizing: border-box;
-	> section {
+	> #pages {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 1;
+		gap: 0.3em;
+	}
+	> #pages > section {
+		gap: 0.3em;
+		flex-grow: 1;
+		width: 0;
+		> :last-child {
+			flex-grow: 1;
+			height: 0;
+		}
+	}
+	> section#config,
+	> #pages > section {
 		display: flex;
 		flex-direction: column;
-		&:not(#config) {
-			gap: 0.3em;
-			flex-grow: 1;
-			width: 0;
-			> :last-child {
-				flex-grow: 1;
-				height: 0;
-			}
-		}
 		> .header {
 			display: flex;
 			flex-direction: row;
@@ -40,6 +47,7 @@ main#app {
 	align-items: center;
 	justify-content: center;
 	background-color: #899FC6;
+	overflow: auto;
 	> canvas {
 		max-width: 100%;
 		max-height: 100%;
@@ -116,4 +124,25 @@ section#config {
 	letter-spacing: 0;
 	margin: 0;
 	padding: 0;
+}
+
+@media(max-width: 1200px) {
+	main#app > #pages {
+		flex-direction: column;
+		> section {
+			width: 100%;
+		}
+		> #pdf {
+			resize: vertical;
+			overflow: auto;
+			flex-grow: 0;
+			height: 50vh;
+		}
+	}
+	#pdf-canvas {
+		align-items: start;
+		> canvas {
+			max-height: inherit;
+		}
+	}
 }

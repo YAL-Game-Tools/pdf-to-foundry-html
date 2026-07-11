@@ -2,3 +2,4 @@
 --dce full
 --class-path src
 --main App
+--macro tools.UpdatePHP.run()

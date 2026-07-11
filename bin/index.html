@@ -3,15 +3,15 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width">
 	<meta property="theme-color" content="#FFF037">
-	<link rel="stylesheet" href="style.css"/>
+	<link rel="stylesheet" href="style.css?t=AUTO_DATE"/>
 	<title>YAL's PDF to Foundry Journal Converter</title>
 	<meta property="og:title" content="YAL's PF2e PDF to Foundry Journal Converter" />
 	<meta property="og:description" content="Grabs text (and images!) from Paizo PDFs for use in Foundry journals!" />
 </head><body>
 	<script src="lib/pdf.mjs" type="module"></script>
 
-	<script src="script.js"></script>
-	<script src="wrapper.mjs" type="module"></script>
+	<script src="script.js?t=AUTO_DATE"></script>
+	<script src="wrapper.mjs?t=AUTO_DATE" type="module"></script>
 	
 	<form id="file-picker-form">
 		<input type="file" id="file-picker" accept=".pdf,application/pdf"/>
@@ -40,27 +40,29 @@
 			<input type="checkbox" id="edge-foundry" checked/>
 			For Foundry
 		</label>
-	</section><section id="pdf">
-		<div class="header">
-			Page
-			<input type="button" id="page-prev" value="↑" />
-			<input type="button" id="page-next" value="↓" />
-			<input type="number" id="page-number" value="1" style="width: 3.2em"/>
-			of <span id="page-count">1</span>
-			· Preview resolution (%):
-			<input type="number" id="page-scale" value="150" step="5" style="width: 3.5em"/>
-		</div>
-		<div id="pdf-canvas" tabindex="0">
-			<canvas id="the-canvas"></canvas>
-		</div>
-	</section><section id="out">
-		<div class="header">
-			<input type="button" id="copy-html" value="Copy HTML" />
-			<input type="button" id="show-images" value="Show images" />
-		</div>
-		<div id="preview-and-images" tabindex="0">
-			<div id="page-images"></div>
-			<div id="preview"></div>
-		</div>
+	</section><section id="pages">
+		<section id="pdf">
+			<div class="header">
+				Page
+				<input type="button" id="page-prev" value="↑" />
+				<input type="button" id="page-next" value="↓" />
+				<input type="number" id="page-number" value="1" style="width: 3.2em"/>
+				of <span id="page-count">1</span>
+				· Preview resolution (%):
+				<input type="number" id="page-scale" value="150" step="5" style="width: 3.5em"/>
+			</div>
+			<div id="pdf-canvas" tabindex="0">
+				<canvas id="the-canvas"></canvas>
+			</div>
+		</section><section id="out">
+			<div class="header">
+				<input type="button" id="copy-html" value="Copy HTML" />
+				<input type="button" id="show-images" value="Show images" />
+			</div>
+			<div id="preview-and-images" tabindex="0">
+				<div id="page-images"></div>
+				<div id="preview"></div>
+			</div>
+		</section>
 	</section></main>
 </body></html>
