@@ -16,16 +16,12 @@ class ArrayCommon {
 			} else arr.push(value);
 		}
 		fn(arr, add);
-		var bestVal:T = null;
-		var bestCount = -1;
-		for (pair in pairs) {
-			var n = pair.arr.length;
-			if (n > bestCount) {
-				bestCount = n;
-				bestVal = pair.value;
-			}
-		}
-		return { value: bestVal, count: bestCount };
+		pairs.sort((a, b) -> b.arr.length - a.arr.length);
+		return {
+			value: pairs[0].value,
+			count: pairs[0].arr.length,
+			pairs: pairs,
+		};
 	}
 	public static function findMostCommon<Q, T>(arr:Array<Q>, getter:Q->T) {
 		return findMostCommonEx(arr, (arr, add) -> {

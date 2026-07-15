@@ -16,6 +16,7 @@ import js.Browser.window;
 
 class Reader {
 	static var firstTime = true;
+	//
 	static function getFieldFlag(name:String) {
 		var fd:InputElement = cast document.getElementById("edge-" + name);
 		if (firstTime) {
@@ -25,6 +26,11 @@ class Reader {
 		}
 		return fd.checked;
 	}
+	static function setFieldFlag(name:String, value:Bool) {
+		var fd:InputElement = cast document.getElementById("edge-" + name);
+		fd.checked = value;
+	}
+	//
 	static function getFieldValue(name:String, defValue:Float = 0):Float {
 		var fd:InputElement = cast document.getElementById("edge-" + name);
 		if (firstTime) {
@@ -41,6 +47,7 @@ class Reader {
 			return num;
 		}
 	}
+	//
 	static function getEdgeValue(name:String, defValue:Float = 0):Float {
 		return getFieldValue(name, defValue * 100) / 100;
 	}
@@ -48,6 +55,7 @@ class Reader {
 		var fd:InputElement = cast document.getElementById("edge-" + name);
 		fd.value = (cast (value * 100)).toFixed(2);
 	}
+	//
 	@:expose("hxReadPage")
 	public static function run(
 		doc:PDFDocument, page:PDFPage, textContent:PDFTextContent,
@@ -82,15 +90,30 @@ class Reader {
 					rightLabels.push(label);
 				}
 			}
-			var leftPos = leftLabels.findMostCommon(l -> l.x);
-			var rightPos = rightLabels.findMostCommon(l -> l.x);
-			if (leftPos.count > 4 && rightPos.count > 4) {
-				var left = leftPos.value - 1;
-				var center = rightPos.value - 1;
+			function findMostCommonX(labels:Array<{x:Float}>) {
+				var best = labels.findMostCommon(l -> l.x);
+				var next = best.pairs[1];
+				if (best.count <= 4) return null;
+				if (next != null && next.value < best.value && next.arr.length > 4) {
+					// a column with a big aside?
+					return next.value;
+				}
+				return best.value;
+			}
+			var leftPos = findMostCommonX(leftLabels);
+			var rightPos = findMostCommonX(rightLabels);
+			if (leftPos != null && rightPos != null) {
+				setFieldFlag("two-column", true);
+				var left = leftPos - 1;
+				var center = rightPos - 1;
 				var diff = center - left;
 				var right = left + diff * 2;
 				setEdgeValue("left", left / pageWidth);
 				setEdgeValue("right", 1 - right / pageWidth);
+			} else if (leftPos != null) {
+				setFieldFlag("two-column", false);
+				setEdgeValue("left", (leftPos - 1) / pageWidth);
+				setEdgeValue("right", 0);
 			}
 		}
 		//
@@ -99,7 +122,8 @@ class Reader {
 		var edgeRight = pageWidth * (edgeX + 1 - getEdgeValue("right"));
 		var edgeTop = pageHeight * (getEdgeValue("top"));
 		var edgeBottom = pageHeight * (1 - getEdgeValue("bottom"));
-		var edgeCenter = (edgeLeft + edgeRight) / 2;
+		var edgeTwoColumns = getFieldFlag("two-column");
+		var edgeCenter = edgeTwoColumns ? (edgeLeft + edgeRight) / 2 : edgeRight;
 		firstTime = false;
 		//
 		ctx.save();
