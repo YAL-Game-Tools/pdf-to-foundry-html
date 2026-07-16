@@ -17,9 +17,10 @@ class ArrayCommon {
 		}
 		fn(arr, add);
 		pairs.sort((a, b) -> b.arr.length - a.arr.length);
+		var best = pairs[0];
 		return {
-			value: pairs[0].value,
-			count: pairs[0].arr.length,
+			value: best?.value,
+			count: best != null ? best.arr.length : -1,
 			pairs: pairs,
 		};
 	}
